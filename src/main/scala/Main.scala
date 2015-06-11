@@ -1,7 +1,6 @@
 import java.nio.file.{Files, Paths}
 
 import com.typesafe.scalalogging.LazyLogging
-import model.Image
 
 object Main extends App with LazyLogging {
 

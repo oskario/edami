@@ -1,8 +1,6 @@
-package model
-
 import java.io.File
 import javax.imageio.ImageIO
-import javax.swing.{JOptionPane, ImageIcon, JLabel, JPanel}
+import javax.swing.{ImageIcon, JLabel, JOptionPane, JPanel}
 
 object Image {
 
@@ -16,7 +14,7 @@ object Image {
 }
 
 final case class Image(file: File) {
-  import model.Image._
+  import Image._
 
   val image = ImageIO.read(file)
   val height = image.getHeight
