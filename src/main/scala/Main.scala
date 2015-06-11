@@ -1,5 +1,4 @@
 import java.nio.file.{Files, Paths}
-import javax.swing.{ImageIcon, JLabel, JOptionPane, JPanel}
 
 import com.typesafe.scalalogging.LazyLogging
 import model.Image
@@ -19,11 +18,7 @@ object Main extends App with LazyLogging {
     logger.info(s"Loading $inputFile...")
     val image = Image.fromFile(inputFile)
 
-    val panel = new JPanel()
-    panel.add(new JLabel(new ImageIcon(image.image)))
-    //panel.add(new JLabel(new ImageIcon(histogram)))
-
-    JOptionPane.showMessageDialog(null, panel, s"$inputFile", JOptionPane.INFORMATION_MESSAGE)
+    image.show()
 
     // print histogram
     println(image.histogram.map { x =>

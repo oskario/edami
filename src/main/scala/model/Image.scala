@@ -2,6 +2,7 @@ package model
 
 import java.io.File
 import javax.imageio.ImageIO
+import javax.swing.{JOptionPane, ImageIcon, JLabel, JPanel}
 
 object Image {
 
@@ -34,6 +35,12 @@ final case class Image(file: File) {
 
   def histogramFor[A](f: Pixel => A)(implicit ordering: Ordering[A]): Seq[(A, Int)] = {
     pixels.groupBy(f).mapValues(_.length).toSeq.sortBy(_._1)
+  }
+
+  def show(): Unit = {
+    val panel = new JPanel()
+    panel.add(new JLabel(new ImageIcon(image)))
+    JOptionPane.showMessageDialog(null, panel, file.getName, JOptionPane.INFORMATION_MESSAGE)
   }
 }
 
