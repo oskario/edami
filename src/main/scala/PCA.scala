@@ -6,7 +6,7 @@ import breeze.linalg._
 // https://github.com/apache/spark/blob/3c0156899dc1ec1f7dfe6d7c8af47fa6dc7d00bf/mllib/src/main/scala/org/apache/spark/mllib/feature/PCA.scala
 object PCA {
 
-  def apply(data: DenseMatrix[Int], components: Int) = pca(data, components)
+  def apply(data: DenseMatrix[Int], components: Int) = pca(new DenseMatrix[Double](data.rows, data.cols, data.data.map(_.toDouble)), components)
 
   def pca(data: DenseMatrix[Double], components: Int) = {
     val d = zeroMean(data)

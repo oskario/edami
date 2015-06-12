@@ -6,17 +6,22 @@ import com.typesafe.scalalogging.LazyLogging
 
 object Main extends App with LazyLogging {
 
-  // TODO: input and pattern as command line parameters
-  val input = "/home/oskar/workspace/edami/src/main/resources/"
-  val pattern = ".*.jpg"
+  // TODO: Delete this example
+  KMeansExample.run
 
-  if (Files.notExists(Paths.get(input))) {
-    logger.error(s"File $input does not exist!")
-  } else {
-    val files = listFiles(input, pattern)
-    logger.info(s"Found ${files.length} files")
-    process(files)
-  }
+  // TODO: input and pattern as command line parameters
+//  val input = "C:\\repo\\studia\\edami\\src\\main\\resources"
+//  val pattern = ".*.jpg"
+//
+//  if (Files.notExists(Paths.get(input))) {
+//    logger.error(s"File $input does not exist!")
+//  } else {
+//    val files = listFiles(input, pattern)
+//    logger.info(s"Found ${files.length} files")
+//    process(files)
+//  }
+
+
 
   def listFiles(directory: String, pattern: String): Seq[String] = {
     val d = new File(directory)
@@ -30,24 +35,25 @@ object Main extends App with LazyLogging {
     }
   }
 
-  def process(inputFiles: Seq[String]): Unit = {
-    val vectors = inputFiles.map(process)
-
+  def getFullHistogramMatrix(inputFiles: Seq[String]): DenseMatrix[Int] = {
+    val vectors = getHistogramVectors(inputFiles)
     logger.info(s"Calculating histogram matrix...")
-    //    val va = vectors.map(_.data): _*
-    //    val matrix = Matrix[Int, Int](va(0), va(1))
-    //    val matrix = DenseMatrix[Int, Int](768, inputFiles.length)
-    val matrix = DenseMatrix[Int, Int]
+    val va = vectors.flatMap(_.data).toArray
+    new DenseMatrix(vectors.length, 768, va)
+  }
 
-    vectors.foreach { vector =>
-      vector.data.
-    }
+  def getHistogramVectors(inputFiles: Seq[String]): Seq[DenseVector[Int]] = {
+    inputFiles.map(process)
+  }
+
+  def process(inputFiles: Seq[String]): Unit = {
+    val matrix = getFullHistogramMatrix(inputFiles)
 
     logger.info(s"Reducing the matrix...")
     val pca = PCA(matrix, 2)
 
     logger.info(s"Clustering...")
-    val result = KMeans(pca, 5)
+    //val result = KMeans(pca, 5)
 
     // TODO: plotting doesn't work :(
     //    val f1 = Figure("data")
@@ -57,7 +63,7 @@ object Main extends App with LazyLogging {
     //    f2.subplot(0) += scatter(pcaRes(::, 0), pcaRes(::, 1), { _ => 0.1 })
   }
 
-  private def process(inputFile: String): SparseVector[Int] = {
+  private def process(inputFile: String): DenseVector[Int] = {
     logger.info(s"Loading $inputFile...")
 
     val image = Image.fromFile(inputFile)
@@ -67,12 +73,12 @@ object Main extends App with LazyLogging {
     result
   }
 
-  private def processImage(image: Image): SparseVector[Int] = {
+  private def processImage(image: Image): DenseVector[Int] = {
     val hueHistogram = image.histogramFor(_.color.h)
     val saturationHistogram = image.histogramFor(_.color.s)
     val valueHistogram = image.histogramFor(_.color.v)
 
-    val result = SparseVector.zeros[Int](768)
+    val result = DenseVector.zeros[Int](768)
     hueHistogram.foreach { case (hue, count) =>
       result.update(1 * (hue / 360 * 255).toInt, count)
     }
