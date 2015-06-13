@@ -1,8 +1,11 @@
 package quality
 
 /**
- * Created by mupakoz on 2015-06-13.
+ * Trait that contains several mathematical functions.
  */
-trait WithMathFunctions {
-
+trait WithMathFunctions[T] {
+  def +(other: T): T
+  def *(other: Int): T
+  def *(other: T): T
+  def distance(other: T):Double
 }

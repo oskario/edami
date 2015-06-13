@@ -1,8 +1,8 @@
 package quality
 
 /**
- * Created by mupakoz on 2015-06-13.
+ * Interface for measurement of clustering quality.
  */
-trait QualityMeasurer {
-
+trait QualityMeasurer[T <: WithMathFunctions[T]] {
+  def getQuality(clusters: Seq[Seq[T]])(implicit meanFunction: Seq[T] => T): Double
 }

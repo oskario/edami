@@ -10,11 +10,14 @@ object ClusteringQualityExample extends LazyLogging {
   def run() = {
     // configuration
     val dataToBeClustered = IndexedSeq(1, 2, 9, 10)
-    val numberOfClusters = Seq(1,2,3,4)
+    val numberOfClusters = Seq(1, 2, 3, 4, 5, 6, 7, 8)
     val minChangeInDispersion = 0.01
     val maxNumberOfIterations = 20
     def distanceFunction: (Int, Int) => Double = (a, b) => math.abs(a - b)
-    def meanFunction(dataToSum: Seq[Int]): Int = dataToSum.sum / dataToSum.size
+    def meanFunction(dataToSum: Seq[Int]): Int = if (dataToSum.nonEmpty)
+      dataToSum.sum / dataToSum.size
+    else
+      0
 
     logger.info("Starting the KMeans Example..")
     logger.info("Data to be clustered: " + dataToBeClustered)
@@ -27,9 +30,9 @@ object ClusteringQualityExample extends LazyLogging {
       // printing the result
       logger.info("Clustering result: " + clusters)
 
-      Quality.getClusteringQuality(clusters.map( (cluster) => cluster.map(new MyInt(_))))
+      Quality.getClusteringQuality(clusters.map((cluster) => cluster.map(new MyInt(_))))
     }
 
-    Quality.plotQualities(numberOfClusters, qualities)
+    Plotter.plotQualities(numberOfClusters, qualities)
   }
 }

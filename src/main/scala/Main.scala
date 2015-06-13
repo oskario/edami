@@ -7,7 +7,7 @@ import com.typesafe.scalalogging.LazyLogging
 object Main extends App with LazyLogging {
 
   // TODO: Delete this example
-  KMeansExample.run
+  ClusteringQualityExample.run
 
   // TODO: input and pattern as command line parameters
 //  val input = "C:\\repo\\studia\\edami\\src\\main\\resources"
