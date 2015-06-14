@@ -1,5 +1,3 @@
-import breeze.linalg.DenseMatrix
-
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random

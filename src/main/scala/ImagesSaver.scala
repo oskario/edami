@@ -1,5 +1,6 @@
-import java.io.File
-import java.nio.file.{Paths, Files}
+import java.io.{IOException, File}
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file._
 import javax.imageio.ImageIO
 
 import com.typesafe.scalalogging.LazyLogging
@@ -16,7 +17,7 @@ object ImagesSaver extends LazyLogging {
   def saveImageClusters(imageClusters: Seq[Seq[Image]], outputDir: String) = {
     logger.info(s"Saving ${imageClusters.length} clusters to $outputDir")
     val output = Paths.get(outputDir)
-    Files.deleteIfExists(output)
+    if (Files.exists(output)) deleteDirWithContents(output)
     Files.createDirectory(output)
 
     imageClusters.zipWithIndex.foreach { case (cluster, i) =>
@@ -30,5 +31,20 @@ object ImagesSaver extends LazyLogging {
         ImageIO.write(image.image, "jpg", outputFile)
       }
     }
+  }
+
+  def deleteDirWithContents(directory: Path) = {
+    Files.walkFileTree(directory, new SimpleFileVisitor[Path]() {
+
+      override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+        Files.delete(file)
+        FileVisitResult.CONTINUE
+      }
+
+      override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
+        Files.delete(dir)
+        FileVisitResult.CONTINUE
+      }
+    })
   }
 }

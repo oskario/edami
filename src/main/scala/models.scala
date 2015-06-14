@@ -41,6 +41,7 @@ final case class Image(file: File) {
 
   import Image._
 
+  val name = file.getName
   val image = ImageIO.read(file)
   val height = image.getHeight
   val width = image.getWidth

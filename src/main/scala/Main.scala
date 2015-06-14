@@ -4,29 +4,39 @@ import java.nio.file.{Files, Paths}
 import breeze.linalg._
 import com.typesafe.scalalogging.LazyLogging
 
+import scala.util.Random
+
 object Main extends App with LazyLogging {
 
-  // TODO: Delete this example
-//  ClusteringQualityExample.run
+  // TODO: make this values app parameters
+  val input = "/home/oskar/workspace/edami/src/main/resources/wang"
+  val pattern = ".*.jpg"
+  val minChangeInDispersion = 0.01
+  val maxNumberOfIterations = 20
+  val k = 10
+  val output = Option("/tmp/output")
 
-  // example of saving image clusters
-  //ImagesSaver.saveImageClusters(Seq(Seq(Image.fromFile("C:\\repo\\studia\\edami\\src\\main\\resources\\sample.jpg"))), "C:\\repo\\studia\\edami\\src\\main\\resources\\output")
+  def distanceFunction: ((Image, Seq[Int]), (Image, Seq[Int])) => Double = { (a, b) =>
+    val differences = a._2.zip(b._2).map { case (v1, v2) =>
+      v2 - v1
+    }
+    Math.sqrt(differences.sum)
+  }
+  def meanFunction(dataToSum: Seq[(Image, Seq[Int])]): (Image, Seq[Int]) = dataToSum(dataToSum.length / 2)
 
-  // TODO: input and pattern as command line parameters
-//  val input = "C:\\repo\\studia\\edami\\src\\main\\resources"
-//  val pattern = ".*.jpg"
-//
-//  if (Files.notExists(Paths.get(input))) {
-//    logger.error(s"File $input does not exist!")
-//  } else {
-//    val files = listFiles(input, pattern)
-//    logger.info(s"Found ${files.length} files")
-//    process(files)
-//  }
+  if (Files.notExists(Paths.get(input))) {
+    logger.error(s"File $input does not exist!")
+  } else {
+    val files = Random.shuffle(listFiles(input, pattern)).take(70)
+    logger.info(s"Found ${files.length} files")
+    val clusters = process(files)
 
+    output.foreach { o =>
+      ImagesSaver.saveImageClusters(clusters, o)
+    }
+  }
 
-
-  def listFiles(directory: String, pattern: String): Seq[String] = {
+  def listFiles(directory: String, pattern: String = ".*"): Seq[String] = {
     val d = new File(directory)
     if (d.exists && d.isDirectory) {
       d.listFiles
@@ -38,45 +48,30 @@ object Main extends App with LazyLogging {
     }
   }
 
-  def getFullHistogramMatrix(inputFiles: Seq[String]): DenseMatrix[Int] = {
-    val vectors = getHistogramVectors(inputFiles)
-    logger.info(s"Calculating histogram matrix...")
-    val va = vectors.flatMap(_.data).toArray
-    new DenseMatrix(vectors.length, 768, va)
-  }
-
-  def getHistogramVectors(inputFiles: Seq[String]): Seq[DenseVector[Int]] = {
-    inputFiles.map(process)
-  }
-
-  def process(inputFiles: Seq[String]): Unit = {
-    val matrix = getFullHistogramMatrix(inputFiles)
-
-    logger.info(s"Reducing the matrix...")
-    val pca = PCA(matrix, 2)
+  def process(inputFiles: Seq[String]): Seq[Seq[Image]] = {
+    logger.info(s"Calculating histograms...")
+    val data = inputFiles.map(process).toIndexedSeq
 
     logger.info(s"Clustering...")
-    //val result = KMeans(pca, 5)
+    val result = KMeans[(Image, Seq[Int])](data, k, distanceFunction, minChangeInDispersion, maxNumberOfIterations, meanFunction)
 
-    // TODO: plotting doesn't work :(
-    //    val f1 = Figure("data")
-    //    val f2 = Figure("pca")
-    //    f1.subplot(0) += hist(matrix)
-    //    f1.subplot(0) += scatter(matrix(::, 0), matrix(::, 3), { _ => 0.1 })
-    //    f2.subplot(0) += scatter(pcaRes(::, 0), pcaRes(::, 1), { _ => 0.1 })
+    logger.debug(s"Result:")
+    result.zipWithIndex.map { case (xa, i) => logger.info(s"Cluster ${i+1}: ${xa.map(_._1.name).mkString(", ")}") }
+
+    result.map(_.map(_._1))
   }
 
-  private def process(inputFile: String): DenseVector[Int] = {
-    logger.info(s"Loading $inputFile...")
+  private def process(inputFile: String): (Image, Seq[Int]) = {
+    logger.debug(s"Loading $inputFile...")
 
     val image = Image.fromFile(inputFile)
     // image.show()
-    val result = processImage(image)
-    logger.info("Image processed!")
-    result
+    val histogram = getHistogram(image)
+    logger.debug("Image processed!")
+    (image, histogram)
   }
 
-  private def processImage(image: Image): DenseVector[Int] = {
+  private def getHistogram(image: Image): Seq[Int] = {
     val hueHistogram = image.histogramFor(_.color.h)
     val saturationHistogram = image.histogramFor(_.color.s)
     val valueHistogram = image.histogramFor(_.color.v)
@@ -91,13 +86,6 @@ object Main extends App with LazyLogging {
     valueHistogram.foreach { case (value, count) =>
       result.update(3 * value.toInt, count)
     }
-    result
+    result.toScalaVector().toSeq
   }
-
-  //  def printHistogram(histogram: Seq[(Double, Int)]): Unit = {
-  //    println(histogram.map { x =>
-  //      val p = (1 to x._2 / 100).map(_ => "#").mkString("")
-  //      s"${x._1} -> $p"
-  //    }.mkString("\n"))
-  //  }
 }
