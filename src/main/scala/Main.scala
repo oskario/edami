@@ -1,7 +1,6 @@
 import java.io.File
 import java.nio.file.{Files, Paths}
 
-import breeze.linalg._
 import com.typesafe.scalalogging.LazyLogging
 import scopt._
 
@@ -103,26 +102,8 @@ object Main extends App with LazyLogging {
 
     val image = Image.fromFile(inputFile)
     // image.show()
-    val histogram = getHistogram(image)
+    val histogram = image.hsvHistogram
     logger.debug("Image processed!")
     (image, histogram)
-  }
-
-  private def getHistogram(image: Image): Seq[Int] = {
-    val hueHistogram = image.histogramFor(_.color.h)
-    val saturationHistogram = image.histogramFor(_.color.s)
-    val valueHistogram = image.histogramFor(_.color.v)
-
-    val result = DenseVector.zeros[Int](768)
-    hueHistogram.foreach { case (hue, count) =>
-      result.update(1 * (hue / 360 * 255).toInt, count)
-    }
-    saturationHistogram.foreach { case (saturation, count) =>
-      result.update(2 * (1 + (saturation * 255).toInt), count)
-    }
-    valueHistogram.foreach { case (value, count) =>
-      result.update(3 * value.toInt, count)
-    }
-    result.toScalaVector().toSeq
   }
 }

@@ -57,6 +57,24 @@ final case class Image(file: File) {
 
   lazy val histogram = histogramFor(_.color.avg)
 
+  lazy val hsvHistogram = {
+    val hueHistogram = histogramFor(_.color.h)
+    val saturationHistogram = histogramFor(_.color.s)
+    val valueHistogram = histogramFor(_.color.v)
+
+    val result = Array.fill[Int](768)(0)
+    hueHistogram.foreach { case (hue, count) =>
+      result.update(1 * (hue / 360 * 255).toInt, count)
+    }
+    saturationHistogram.foreach { case (saturation, count) =>
+      result.update(2 * (1 + (saturation * 255).toInt), count)
+    }
+    valueHistogram.foreach { case (value, count) =>
+      result.update(3 * value.toInt, count)
+    }
+    result.toSeq
+  }
+
   def histogramFor[A](f: Pixel => A)(implicit ordering: Ordering[A]): Seq[(A, Int)] = {
     pixels.groupBy(f).mapValues(_.length).toSeq.sortBy(_._1)
   }

@@ -1,10 +1,6 @@
-import breeze.linalg.DenseVector
-import breeze.stats.distributions.Gaussian
 import com.typesafe.scalalogging.LazyLogging
 import example.MyInt
-import quality.{Quality, FSquareMeasurement}
-import breeze.plot._
-import breeze.linalg._
+import quality.Quality
 
 object ClusteringQualityExample extends LazyLogging {
   def run() = {
