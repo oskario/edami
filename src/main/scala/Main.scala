@@ -7,7 +7,10 @@ import com.typesafe.scalalogging.LazyLogging
 object Main extends App with LazyLogging {
 
   // TODO: Delete this example
-  ClusteringQualityExample.run
+//  ClusteringQualityExample.run
+
+  // example of saving image clusters
+  //ImagesSaver.saveImageClusters(Seq(Seq(Image.fromFile("C:\\repo\\studia\\edami\\src\\main\\resources\\sample.jpg"))), "C:\\repo\\studia\\edami\\src\\main\\resources\\output")
 
   // TODO: input and pattern as command line parameters
 //  val input = "C:\\repo\\studia\\edami\\src\\main\\resources"
