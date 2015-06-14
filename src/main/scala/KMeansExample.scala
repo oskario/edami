@@ -1,3 +1,4 @@
+import algorithms.KMeans
 import com.typesafe.scalalogging.LazyLogging
 import example.MyInt
 import quality.FSquareMeasurement

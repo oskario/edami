@@ -1,3 +1,4 @@
+import algorithms.KMeans
 import com.typesafe.scalalogging.LazyLogging
 import example.MyInt
 import quality.Quality
@@ -15,7 +16,7 @@ object ClusteringQualityExample extends LazyLogging {
     else
       0
 
-    logger.info("Starting the KMeans Example..")
+    logger.info("Starting the algorithms.KMeans Example..")
     logger.info("Data to be clustered: " + dataToBeClustered)
 
     // running the algorithm

@@ -1,4 +1,6 @@
-import DBSCAN._
+package algorithms
+
+import algorithms.DBSCAN._
 
 import scala.collection.mutable.{ListBuffer, Set => MutableSet}
 

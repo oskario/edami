@@ -1,7 +1,8 @@
 import java.io.File
 import java.nio.file.{Files, Paths}
 
-import _root_.DBSCAN.Point
+import algorithms.DBSCAN.Point
+import algorithms.{DBSCAN, KMeans}
 import com.typesafe.scalalogging.LazyLogging
 import scopt._
 
