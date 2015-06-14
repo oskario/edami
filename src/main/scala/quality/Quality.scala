@@ -10,4 +10,8 @@ object Quality {
 
 case class Quality(f2: Double, b2: Double) {
   val f2Divb2 = f2 / b2
+
+  override def toString(): String = {
+    s"Quality[ f^2: $f2, b^2: $b2, f^2/b^2: $f2Divb2"
+  }
 }

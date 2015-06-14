@@ -4,6 +4,7 @@ import java.nio.file.{Files, Paths}
 import algorithms.DBSCAN.Point
 import algorithms.{DBSCAN, KMeans}
 import com.typesafe.scalalogging.LazyLogging
+import quality.Quality
 import scopt._
 
 import scala.util.Random
@@ -33,13 +34,27 @@ object Main extends App with LazyLogging {
     opt[String]('o', "output").action { (x, c) =>
       c.copy(output = Option(x))
     }.text("output directory")
+    opt[String]('t', "type").required().action { (x, c) =>
+      c.copy(clusteringType = x)
+    }.text("clustering type (kmeans/dbscan)")
+    opt[Int]('e', "epsilon").action { (x, c) =>
+      c.copy(epsilon = x)
+    }.text("epsilon parameter value for dbscan algorithm")
+    opt[Int]("min-neighbours").required().action { (x, c) =>
+      c.copy(minNeighbours = x)
+    }.text("min neighbours parameter value for dbscan algorithm")
     help("help").text("prints this usage text")
   }
 
-  parser.parse(args.toSeq, Config("", 0)) match {
+  parser.parse(args.toSeq, Config("", 0, "")) match {
     case Some(parsed) =>
-      implicit val config = parsed
-      run(dbscan)
+      implicit val config: Config = parsed
+      if (config.clusteringType.equals("kmeans")) {
+        run(kmeans)
+      } else {
+        run(dbscan)
+      }
+
     case None =>
       // invalid args
   }
@@ -48,17 +63,20 @@ object Main extends App with LazyLogging {
     if (Files.notExists(Paths.get(config.inputDir))) {
       logger.error(s"File ${config.inputDir} does not exist!")
     } else {
-      val files = Random.shuffle(listFiles(config.inputDir, config.pattern)).take(20)
+      val files = Random.shuffle(listFiles(config.inputDir, config.pattern))
       logger.info(s"Found ${files.length} files")
       val clusters = process(files, method)
 
       config.output.foreach { o =>
-        ImagesSaver.saveImageClusters(clusters, o)
+        ImagesSaver.saveImageClusters(clusters.map(_.map(_._1)), o)
       }
+
+      val quality = Quality.getClusteringQuality[MyVector](clusters.map(c => c.map(e => new MyVector(e._2))))
+      logger.info(s"Clustering quality: $quality")
     }
   }
 
-  private def process(inputFiles: Seq[String], cluster: (Seq[(Image, Seq[Int])]) => Seq[Seq[(Image, Seq[Int])]])(implicit config: Config): Seq[Seq[Image]] = {
+  private def process(inputFiles: Seq[String], cluster: (Seq[(Image, Seq[Int])]) => Seq[Seq[(Image, Seq[Int])]])(implicit config: Config): Seq[Seq[(Image, Seq[Int])]] = {
     logger.info(s"Calculating histograms...")
     val data = inputFiles.map(process)
 
@@ -68,7 +86,7 @@ object Main extends App with LazyLogging {
     logger.debug(s"Result:")
     result.zipWithIndex.map { case (xa, i) => logger.info(s"Cluster ${i+1}: ${xa.map(_._1.name).mkString(", ")}") }
 
-    result.map(_.map(_._1))
+    result
   }
 
   private def process(inputFile: String): (Image, Seq[Int]) = {
@@ -126,6 +144,7 @@ object Main extends App with LazyLogging {
       neighbours.size >= minPoints
     }
 
-    DBSCAN[(Image, Seq[Int])](data, getNeighbours(10000, distanceFunction), isCorePoint(5))
+    logger.debug(s"Runnging DBSCAN with parameters: epsilon: ${config.epsilon}, minNeighbours: ${config.minNeighbours}")
+    DBSCAN[(Image, Seq[Int])](data, getNeighbours(config.epsilon, distanceFunction), isCorePoint(config.minNeighbours))
   }
 }
