@@ -37,8 +37,9 @@ object Main extends App with LazyLogging {
   }
 
   parser.parse(args.toSeq, Config("", 0)) match {
-    case Some(config) =>
-      run(dbscan)(config)
+    case Some(parsed) =>
+      implicit val config = parsed
+      run(dbscan)
     case None =>
       // invalid args
   }
