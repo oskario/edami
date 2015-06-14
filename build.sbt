@@ -9,7 +9,8 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.1.6" % "test",
   "ch.qos.logback" % "logback-classic" % "1.1.2",
   "org.scalanlp" %% "breeze" % "0.11.2",
-  "org.scalanlp" %% "breeze-viz" % "0.11.2"
+  "org.scalanlp" %% "breeze-viz" % "0.11.2",
+  "com.github.scopt" %% "scopt" % "3.3.0"
   // greatly improves performance, but unfortunately doesn't work :/
   // "org.scalanlp" %% "breeze-natives" % "0.11.2"
 )

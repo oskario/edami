@@ -3,18 +3,44 @@ import java.nio.file.{Files, Paths}
 
 import breeze.linalg._
 import com.typesafe.scalalogging.LazyLogging
+import scopt._
 
 import scala.util.Random
 
 object Main extends App with LazyLogging {
 
-  // TODO: make this values app parameters
-  val input = "/home/oskar/workspace/edami/src/main/resources/wang"
-  val pattern = ".*.jpg"
-  val minChangeInDispersion = 0.01
-  val maxNumberOfIterations = 20
-  val k = 10
-  val output = Option("/tmp/output")
+  val parser = new OptionParser[Config]("edami") {
+    head("edami", "0.1.0")
+    opt[String]('i', "input").required().action { (x, c) =>
+      c.copy(inputDir = x)
+    }.text("input directory")
+    opt[Int]('k', "clusters").required().action { (x, c) =>
+      c.copy(k = x)
+    }.text("number of clusters (k)")
+    opt[String]('p', "pattern").action { (x, c) =>
+      c.copy(pattern = x)
+    }.text("input file pattern (e.g. '.*.jpg')")
+    opt[Double]("min-dispersion").action { (x, c) =>
+      c.copy(minChangeInDispersion = x)
+    }.text("min change in dispersion")
+    opt[Int]("max-iterations").action { (x, c) =>
+      c.copy(maxNumberOfIterations = x)
+    }.text("max number of iterations")
+    opt[Int]("max-iterations").action { (x, c) =>
+      c.copy(maxNumberOfIterations = x)
+    }.text("max number of iterations")
+    opt[String]('o', "output").action { (x, c) =>
+      c.copy(output = Option(x))
+    }.text("output directory")
+    help("help").text("prints this usage text")
+  }
+
+  parser.parse(args.toSeq, Config("", 0)) match {
+    case Some(config) =>
+      run(config)
+    case None =>
+      // invalid args
+  }
 
   def distanceFunction: ((Image, Seq[Int]), (Image, Seq[Int])) => Double = { (a, b) =>
     val differences = a._2.zip(b._2).map { case (v1, v2) =>
@@ -22,17 +48,20 @@ object Main extends App with LazyLogging {
     }
     Math.sqrt(differences.sum)
   }
+
   def meanFunction(dataToSum: Seq[(Image, Seq[Int])]): (Image, Seq[Int]) = dataToSum(dataToSum.length / 2)
 
-  if (Files.notExists(Paths.get(input))) {
-    logger.error(s"File $input does not exist!")
-  } else {
-    val files = Random.shuffle(listFiles(input, pattern)).take(70)
-    logger.info(s"Found ${files.length} files")
-    val clusters = process(files)
+  def run(implicit config: Config) = {
+    if (Files.notExists(Paths.get(config.inputDir))) {
+      logger.error(s"File ${config.inputDir} does not exist!")
+    } else {
+      val files = Random.shuffle(listFiles(config.inputDir, config.pattern)).take(70)
+      logger.info(s"Found ${files.length} files")
+      val clusters = process(files)
 
-    output.foreach { o =>
-      ImagesSaver.saveImageClusters(clusters, o)
+      config.output.foreach { o =>
+        ImagesSaver.saveImageClusters(clusters, o)
+      }
     }
   }
 
@@ -48,12 +77,12 @@ object Main extends App with LazyLogging {
     }
   }
 
-  def process(inputFiles: Seq[String]): Seq[Seq[Image]] = {
+  def process(inputFiles: Seq[String])(implicit config: Config): Seq[Seq[Image]] = {
     logger.info(s"Calculating histograms...")
     val data = inputFiles.map(process).toIndexedSeq
 
     logger.info(s"Clustering...")
-    val result = KMeans[(Image, Seq[Int])](data, k, distanceFunction, minChangeInDispersion, maxNumberOfIterations, meanFunction)
+    val result = KMeans[(Image, Seq[Int])](data, config.k, distanceFunction, config.minChangeInDispersion, config.maxNumberOfIterations, meanFunction)
 
     logger.debug(s"Result:")
     result.zipWithIndex.map { case (xa, i) => logger.info(s"Cluster ${i+1}: ${xa.map(_._1.name).mkString(", ")}") }
