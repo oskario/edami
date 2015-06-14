@@ -29,7 +29,5 @@ object ClusteringQualityExample extends LazyLogging {
 
       Quality.getClusteringQuality(clusters.map((cluster) => cluster.map(new MyInt(_))))
     }
-
-    Plotter.plotQualities(numberOfClusters, qualities)
   }
 }

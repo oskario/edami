@@ -8,8 +8,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "org.scalatest" %% "scalatest" % "2.1.6" % "test",
   "ch.qos.logback" % "logback-classic" % "1.1.2",
-  "org.scalanlp" %% "breeze" % "0.11.2",
-  "org.scalanlp" %% "breeze-viz" % "0.11.2",
   "com.github.scopt" %% "scopt" % "3.3.0"
 )
 
