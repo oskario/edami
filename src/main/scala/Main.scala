@@ -9,20 +9,32 @@ import scala.util.Random
 object Main extends App with LazyLogging {
 
   // TODO: make this values app parameters
+  //val input = "C:\\repo\\studia\\edami\\src\\main\\resources\\wang_min"
   val input = "/home/oskar/workspace/edami/src/main/resources/wang"
   val pattern = ".*.jpg"
   val minChangeInDispersion = 0.01
   val maxNumberOfIterations = 20
-  val k = 10
+  val k = 3
+
+  //val output = Option("C:\\repo\\studia\\edami\\src\\main\\resources\\output")
   val output = Option("/tmp/output")
 
   def distanceFunction: ((Image, Seq[Int]), (Image, Seq[Int])) => Double = { (a, b) =>
     val differences = a._2.zip(b._2).map { case (v1, v2) =>
-      v2 - v1
+      math.pow(v2 - v1, 2)
     }
     Math.sqrt(differences.sum)
   }
-  def meanFunction(dataToSum: Seq[(Image, Seq[Int])]): (Image, Seq[Int]) = dataToSum(dataToSum.length / 2)
+
+  def meanFunction(dataToSum: Seq[(Image, Seq[Int])]): (Image, Seq[Int]) = if (dataToSum.isEmpty)
+    (null, Seq.fill(768)(0))
+  else
+    (dataToSum.head._1, vectorMean(dataToSum.map(_._2)))
+
+  def vectorMean(vectors: Seq[Seq[Int]]): Seq[Int] =
+    for {
+    i <- vectors.head.indices
+  } yield vectors.map( v => v(i)).sum/vectors.size
 
   if (Files.notExists(Paths.get(input))) {
     logger.error(s"File $input does not exist!")
